@@ -65,7 +65,8 @@ const initialTeams:Team[] = [
   {name: 'Illinois'},
   {name: 'Army'},
   {name: 'Michigan'},
-  {name: 'Navy'}
+  {name: 'Navy'},
+  {name: 'Utah'}
 ];
 
 function TeamSelection({name}:Team){
