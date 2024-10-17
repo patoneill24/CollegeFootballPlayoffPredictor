@@ -24,6 +24,17 @@
   color: white;
 }
 
+.ScoreBoard{
+  margin-top: 300px;
+  text-align: center;
+  background-color: lightgray;
+  height: 220px;
+  input{
+    width: 100px;
+    margin: 5px;
+  }
+}
+
 .avatar{
   border-radius: 50%;
 }

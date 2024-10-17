@@ -33,6 +33,10 @@ interface Item {
   name: string;
 }
 
+interface ScoreBoardProps {
+  rounds: Round[];
+}
+
 function Title(){
   return <div>
     <h1>2025 CFB Playoff Prediction</h1>
@@ -168,6 +172,18 @@ function CreateBracket(){
     setRounds(newRounds);
   },[topTeams]);
 
+  function ScoreBoard({rounds}:ScoreBoardProps){
+    return(
+      <div>
+        <h2>Predict Final Score</h2>
+        <p>{rounds[3].matches[0].teams[0].name}     vs     {rounds[3].matches[0].teams[1].name}</p>
+        <input type='text' placeholder='Enter Score'/>
+        <input type='text' placeholder='Enter Score'/>
+        <button className='SubmitButton'>Submit</button>
+      </div>
+    );
+  }
+
   useEffect(() => {
     if(topTeams.length === 12){
       alert('Bracket is Full!');
@@ -187,6 +203,8 @@ function CreateBracket(){
     setTeams(topTeams => [...topTeams, newTeams[0]]);
     setAvailableTeams(newAvailableTeams);
   };
+
+  const [showScoreBoard, setShowScoreBoard] = useState(false);
 
   function ChooseWinner(roundIndex: number, matchIndex: number, teamIndex: number) {
     const newRounds = [...rounds];
@@ -219,6 +237,10 @@ function CreateBracket(){
           }else{
             nextMatch.teams[1] = advancingTeam;
           }
+          if(roundIndex === 3){
+            alert('Congratulations to the National Champion: ' + advancingTeam.name);
+            setShowScoreBoard(true);
+          }
         }else{
           nextMatch.teams = nextMatch.teams.map(team => team.name.includes('Winner') ? advancingTeam : team);
         }
@@ -229,6 +251,7 @@ function CreateBracket(){
 
   function Bracket({rounds}:BracketProps) {
     return(
+    <>
     <div className='Bracket'>
       {rounds.map((round,roundIndex) => (
         <div key={roundIndex} className={`round-${roundIndex}`}>
@@ -245,7 +268,11 @@ function CreateBracket(){
         ))}
         </div>
       ))}
+      <div className='ScoreBoard'>
+        {showScoreBoard && <ScoreBoard rounds = {rounds}/>}
+      </div>
     </div>
+    </>
     );
   };
   const [showBracket, setShowBracket] = useState(false);
