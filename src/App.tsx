@@ -33,9 +33,10 @@ interface Item {
   name: string;
 }
 
-interface ScoreBoardProps {
-  rounds: Round[];
-}
+// interface ScoreBoardProps {
+//   name1: string;
+//   name2: string;
+// }
 
 function Title(){
   return <div>
@@ -172,14 +173,40 @@ function CreateBracket(){
     setRounds(newRounds);
   },[topTeams]);
 
-  function ScoreBoard({rounds}:ScoreBoardProps){
+  const [championshipTeams, setChampionshipTeams] = useState<Team[]>([]);
+
+  const initialChampionshipTeams = useCallback(() => {
+  const newChampionshipTeams: Team[] = [
+    {name: 'Championship Team 1'},
+    {name: 'Championship Team 2'}
+  ]; 
+  setChampionshipTeams(newChampionshipTeams);
+  },[]);
+
+  function ScoreBoard() { 
+    const [score1, setScore1] = useState('');
+    const [score2, setScore2] = useState('');
+
+    const ChooseScore = () => {
+      if(score1 === '' || score2 === ''){
+        alert('Please enter a score');
+        return;
+      }
+      if(score1 < score2){
+        alert(`You selected ${championshipTeams[0].name} as the winner, but the score does not reflect that`);
+        return;
+      }
+      alert(`Final Score: ${score1} - ${score2}`);
+    }
     return(
       <div>
         <h2>Predict Final Score</h2>
-        <p>{rounds[3].matches[0].teams[0].name}     vs     {rounds[3].matches[0].teams[1].name}</p>
-        <input type='text' placeholder='Enter Score'/>
-        <input type='text' placeholder='Enter Score'/>
-        <button className='SubmitButton'>Submit</button>
+        <p>{championshipTeams[0].name}     vs     {championshipTeams[1].name}</p>
+        <input type='text' placeholder='Enter Score' value={score1}
+        onChange={(e) => setScore1(e.target.value)}/>
+        <input type='text' placeholder='Enter Score' value={score2}
+        onChange={(e)=> setScore2(e.target.value)}/>
+        <button className='SubmitButton' onClick={() => ChooseScore()}>Submit</button>
       </div>
     );
   }
@@ -188,8 +215,9 @@ function CreateBracket(){
     if(topTeams.length === 12){
       alert('Bracket is Full!');
       initializeBracket();
+      initialChampionshipTeams();
     }
-  }, [topTeams, initializeBracket]
+  }, [topTeams, initializeBracket, initialChampionshipTeams]
   );
 
 
@@ -211,7 +239,7 @@ function CreateBracket(){
     const currentRound = newRounds[roundIndex];
     const currentMatch = newRounds[roundIndex].matches[matchIndex];
     const advancingTeam = currentMatch.teams[teamIndex];
-    console.log(currentMatch);
+    console.log(championshipTeams)
     if(!currentRound){
       alert('invalid round');
       return;
@@ -220,7 +248,7 @@ function CreateBracket(){
       alert('invalid match');
       return;
     }
-    if(!advancingTeam){
+    if(!advancingTeam || advancingTeam.name.includes('Winner')){
       alert('invalid team');
       return;
     }
@@ -232,14 +260,23 @@ function CreateBracket(){
       }
       if (nextMatch) {
         if(roundIndex > 0){
-          if(matchIndex % 2 === 0){
+          if(matchIndex % 2 === 0 && nextMatch.teams[0].name.includes('Winner')){
             nextMatch.teams[0] = advancingTeam;
           }else{
-            nextMatch.teams[1] = advancingTeam;
+            if(matchIndex % 2 === 1 && nextMatch.teams[1].name.includes('Winner')){
+              nextMatch.teams[1] = advancingTeam;
+            }
+          }
+          if(roundIndex === 2){
+            setChampionshipTeams([nextMatch.teams[0], nextMatch.teams[1]]);
           }
           if(roundIndex === 3){
-            alert('Congratulations to the National Champion: ' + advancingTeam.name);
             setShowScoreBoard(true);
+            if(teamIndex === 0){
+              setChampionshipTeams([nextMatch.teams[0], currentMatch.teams[1]]);
+            }else{
+              setChampionshipTeams([nextMatch.teams[0], currentMatch.teams[0]]);
+            }
           }
         }else{
           nextMatch.teams = nextMatch.teams.map(team => team.name.includes('Winner') ? advancingTeam : team);
@@ -269,7 +306,7 @@ function CreateBracket(){
         </div>
       ))}
       <div className='ScoreBoard'>
-        {showScoreBoard && <ScoreBoard rounds = {rounds}/>}
+        {showScoreBoard && <ScoreBoard />}
       </div>
     </div>
     </>
