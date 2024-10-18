@@ -1,3 +1,54 @@
+## Overview
+
+**Project Title**: CFB Playoff Predictor
+
+**Project Description**: Users can predict which teams will make the College Football Playoffs and pick which teams will win each game in the playoff bracket. They can also predict the score of the championship game. 
+
+**Project Goals**: The goal is to provide a fun and ineractive way for people to predict the College Football Playoff teams and games.
+
+## Instructions for Build and Use
+
+Steps to build and/or run the software:
+1. Install nvm on your computer to ensure you have the latest version of Node.js. (you'll need version 14.0 or later)
+2. run `npm run build` to build the web app.
+
+Instructions for using the software:
+
+1. Drag and drop the teams who you think will make the playoffs.
+2. Once you dragged and dropped 12 teams, click the 'Create Bracket' button to see the playoff bracket.
+3. Click on the teams you think will win each game in the bracket.
+4. Once you have picked the winners of each game, select your prediction for the score of the championship game.
+
+## Development Environment 
+
+To recreate the development environment, you need the following software and/or libraries with the specified versions:
+
+* run `npx create-react-app my-ap cd my-app` to create a new React app.
+* run `npm start` to start the app. run `npm install react-dnd` and `npm install react-dnd-html5-backend` to install libraries * necessary for drag and drop. 
+* run `npm install --save typescript @types/node @types/react @types/react-dom @types/jest` to install typescript and types for React and to add it to your existing project. 
+* change the file extension of the App.js file to App.tsx to convert the file to a typescript file.
+
+## Useful Websites to Learn More
+
+I found these websites useful in developing this software:
+
+* [React-dev](https://react.dev)
+* [React-dnd](https://react-dnd.github.io/react-dnd/about)
+* [React-dnd-tutorial](https://www.youtube.com/watch?v=4bzJrEETW4w)
+* [TypeScript Documentation](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html)
+* [Adding Typescript to React](https://create-react-app.dev/docs/adding-typescript/)
+## Future Work
+
+The following items I plan to fix, improve, and/or add to this project in the future:
+
+* [ ] Add a feature to allow users to recieve a score based on how accurate their predictions were.
+* [ ] Add a feature to allow users to create an account and save their predictions.
+* [ ] Add a feature to allow users to view other users' predictions on a leaderboard.
+
+
+
+Below is Some Information on the Create React App that was provided when the project was created:
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
