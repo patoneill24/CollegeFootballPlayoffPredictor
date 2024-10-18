@@ -25,7 +25,7 @@ interface BracketProps {
   rounds: Round[];
 }
 
-interface DropZoneProps {
+class DropZoneProps {
   onDrop: (name: string) => void;
 }
 
@@ -174,6 +174,8 @@ function CreateBracket(){
   },[topTeams]);
 
   const [championshipTeams, setChampionshipTeams] = useState<Team[]>([]);
+
+  // let championshipTeams1: [ChampionshipTeam, ChampionshipTeam];
 
   const initialChampionshipTeams = useCallback(() => {
   const newChampionshipTeams: Team[] = [
