@@ -11,6 +11,7 @@ interface Team {
   name: string;
 }
 
+
 interface Match {
   name: string;
   teams: Team[];
@@ -33,10 +34,6 @@ interface Item {
   name: string;
 }
 
-// interface ScoreBoardProps {
-//   name1: string;
-//   name2: string;
-// }
 
 function Title(){
   return <div>
@@ -91,34 +88,14 @@ function TeamSelection({name}:Team){
 }
 
 
-// function Bracket ({rounds}:BracketProps) {
-//   return(
-//   <div className='Bracket'>
-//     {rounds.map((round,roundIndex) => (
-//       <div key={roundIndex} className={`round-${roundIndex}`}>
-//         <h2>{round.name}</h2>
-//       {round.matches.map((match,matchIndex) => (
-//         <div className='Match' key={matchIndex}>
-//           <h3>{match.name}</h3>
-//           <div className='Teams1'>
-//             {match.teams.map((team,teamIndex) => (
-//               <button className='Team' key={teamIndex}>{team.name}</button>
-//             ))}
-//           </div>
-//         </div>
-//       ))}
-//       </div>
-//     ))}
-//   </div>
-//   );
-// }
-
-
-
 function CreateBracket(){
   const [topTeams, setTeams] = useState<Team[]>([]);
   const [teams, setAvailableTeams] = useState<Team[]>(initialTeams);
   const [rounds, setRounds] = useState<Round[]>([]);
+  const [championshipTeams, setChampionshipTeams] = useState<Team[]>([]);
+  const [championshipScore, setChampionshipScore] = useState<[number, number]>([0,0]);
+  const [showChampionshipScore, setShowChampionshipScore] = useState(false);
+  const [showScoreBoard, setShowScoreBoard] = useState(false);
 
   function DropZone({onDrop}: DropZoneProps) {
     const [, drop] = useDrop<Item>(() => ({
@@ -138,6 +115,16 @@ function CreateBracket(){
     );
   }
 
+  const moveTeam = (name: string) => {
+    if (topTeams.length >= 12) {
+      alert('You Cannot add any more teams!');
+      return;
+    }
+    const newTeams = teams.filter((team) => name === team.name);
+    const newAvailableTeams = teams.filter((team) => name !== team.name);
+    setTeams(topTeams => [...topTeams, newTeams[0]]);
+    setAvailableTeams(newAvailableTeams);
+  };
 
   const initializeBracket = useCallback(() => {
     const newRounds: Round[] = [
@@ -173,16 +160,18 @@ function CreateBracket(){
     setRounds(newRounds);
   },[topTeams]);
 
-  const [championshipTeams, setChampionshipTeams] = useState<Team[]>([]);
 
-  // let championshipTeams1: [ChampionshipTeam, ChampionshipTeam];
-
-  const initialChampionshipTeams = useCallback(() => {
+  const initializeChampionshipTeams = useCallback(() => {
   const newChampionshipTeams: Team[] = [
     {name: 'Championship Team 1'},
     {name: 'Championship Team 2'}
   ]; 
   setChampionshipTeams(newChampionshipTeams);
+  },[]);
+
+  const initializeChampionshipScore = useCallback(() => {
+    const newChampionshipScore: [number, number] = [0,0];
+    setChampionshipScore(newChampionshipScore);
   },[]);
 
   function ScoreBoard() { 
@@ -198,7 +187,8 @@ function CreateBracket(){
         alert(`You selected ${championshipTeams[0].name} as the winner, but the score does not reflect that`);
         return;
       }
-      alert(`Final Score: ${score1} - ${score2}`);
+      setChampionshipScore([parseInt(score1), parseInt(score2)]);
+      setShowChampionshipScore(true);
     }
     return(
       <div>
@@ -217,24 +207,11 @@ function CreateBracket(){
     if(topTeams.length === 12){
       alert('Bracket is Full!');
       initializeBracket();
-      initialChampionshipTeams();
+      initializeChampionshipTeams();
+      initializeChampionshipScore();
     }
-  }, [topTeams, initializeBracket, initialChampionshipTeams]
+  }, [topTeams, initializeBracket, initializeChampionshipTeams,initializeChampionshipScore]
   );
-
-
-  const moveTeam = (name: string) => {
-    if (topTeams.length >= 12) {
-      alert('You Cannot add any more teams!');
-      return;
-    }
-    const newTeams = teams.filter((team) => name === team.name);
-    const newAvailableTeams = teams.filter((team) => name !== team.name);
-    setTeams(topTeams => [...topTeams, newTeams[0]]);
-    setAvailableTeams(newAvailableTeams);
-  };
-
-  const [showScoreBoard, setShowScoreBoard] = useState(false);
 
   function ChooseWinner(roundIndex: number, matchIndex: number, teamIndex: number) {
     const newRounds = [...rounds];
@@ -288,6 +265,18 @@ function CreateBracket(){
     setRounds(newRounds);
   }
 
+
+  function FinalScore(){
+    setShowScoreBoard(false);
+    return(
+      <div>
+        <h2>Final Score</h2>
+        <p>{championshipTeams[0].name}     vs     {championshipTeams[1].name}</p>
+        <p>{championshipScore[0]} - {championshipScore[1]}</p>
+      </div>
+    );
+  }
+
   function Bracket({rounds}:BracketProps) {
     return(
     <>
@@ -309,7 +298,9 @@ function CreateBracket(){
       ))}
       <div className='ScoreBoard'>
         {showScoreBoard && <ScoreBoard />}
+        {showChampionshipScore && <FinalScore />}
       </div>
+
     </div>
     </>
     );

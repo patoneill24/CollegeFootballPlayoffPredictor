@@ -29,6 +29,7 @@
   text-align: center;
   background-color: lightgray;
   height: 220px;
+  padding: 10px;
   input{
     width: 100px;
     margin: 5px;
