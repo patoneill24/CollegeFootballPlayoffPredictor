@@ -5,7 +5,10 @@ import {HTML5Backend} from 'react-dnd-html5-backend';
 import {useDrag} from 'react-dnd';
 import {useDrop} from 'react-dnd';
 import React, {useEffect } from 'react';
+import { Client } from 'appwrite';
 
+const client = new Client();
+client.setProject('671af1940018ab6ff0e3');
 
 interface Team {
   name: string;
