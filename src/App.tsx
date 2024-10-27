@@ -5,13 +5,59 @@ import {HTML5Backend} from 'react-dnd-html5-backend';
 import {useDrag} from 'react-dnd';
 import {useDrop} from 'react-dnd';
 import React, {useEffect } from 'react';
-import { Client } from 'appwrite';
+import { Client, Databases, Query } from 'appwrite';
+
 
 const client = new Client();
 client.setProject('671af1940018ab6ff0e3');
 
+const database = new Databases(client);
+
+async function addTeam(name: string, rank: number) {
+  const response = await database.createDocument('671af7a100181ff6d285', '671afdce0026a9f0cbbe', 'unique()', { name , rank });
+  console.log(response);
+}
+
+async function addPrediction(championship_team: string, runner_up_team: string, champion_score: number, runner_up_score: number) {
+  const response = await database.createDocument('671af7a100181ff6d285', '671b00e500041a664475', 'unique()', { championship_team, runner_up_team, champion_score, runner_up_score });
+  console.log(response);
+}
+
+async function getPredictions(): Promise<any[]> {
+  const response = await database.listDocuments('671af7a100181ff6d285', '671b00e500041a664475');
+  return response.documents;
+}
+
+async function deletePrediction(id: string) {
+  const response = await database.deleteDocument('671af7a100181ff6d285', '671b00e500041a664475', id);
+  alert('Deleted Prediction with ID: ' + id);
+  console.log(response);
+}
+
+async function getTeams(): Promise<Team[]> {
+  try{
+    const response = await database.listDocuments('671af7a100181ff6d285', '671afdce0026a9f0cbbe',
+      [Query.orderDesc('$createdAt'), Query.limit(12)]);
+    console.log(response);
+    return response.documents.map((doc) => ({
+      name: doc.name,
+      rank: doc.rank,
+    }));
+  } catch(error){
+    console.error(error);
+    return [];
+  }
+
+}
+
+// interface Document {
+//   name: string;
+//   rank: number;
+// }
+
 interface Team {
   name: string;
+  rank?: number;
 }
 
 
@@ -192,9 +238,10 @@ function CreateBracket(){
       }
       setChampionshipScore([parseInt(score1), parseInt(score2)]);
       setShowChampionshipScore(true);
+      addPrediction(championshipTeams[0].name, championshipTeams[1].name, parseInt(score1), parseInt(score2));
     }
     return(
-      <div>
+      <div className='ScoreBoard'>
         <h2>Predict Final Score</h2>
         <p>{championshipTeams[0].name}     vs     {championshipTeams[1].name}</p>
         <input type='text' placeholder='Enter Score' value={score1}
@@ -206,22 +253,40 @@ function CreateBracket(){
     );
   }
 
+  // const [allTeams, setAllTeams] = useState<Team[]>([]);
   useEffect(() => {
     if(topTeams.length === 12){
       alert('Bracket is Full!');
       initializeBracket();
       initializeChampionshipTeams();
       initializeChampionshipScore();
+      for(let i = 0; i < 12; i++){
+        addTeam(topTeams[i].name, i + 1);
+      }
     }
-  }, [topTeams, initializeBracket, initializeChampionshipTeams,initializeChampionshipScore]
-  );
+  }, [topTeams, initializeBracket, initializeChampionshipTeams,initializeChampionshipScore]);
+
+  // useEffect(() => {
+  //   async function fetchTeams() {
+  //     const allTeams = await getTeams();
+  //     if(allTeams){
+  //       const allTeamsWithRank = allTeams.map((doc)=> ({
+  //         name: doc.name,
+  //         rank: doc.rank
+  //       }));
+  //       setAllTeams(allTeamsWithRank);
+  //     }
+  //   }
+  //   if(showBracket){
+  //     fetchTeams();
+  //   }
+  //   });
 
   function ChooseWinner(roundIndex: number, matchIndex: number, teamIndex: number) {
     const newRounds = [...rounds];
     const currentRound = newRounds[roundIndex];
     const currentMatch = newRounds[roundIndex].matches[matchIndex];
     const advancingTeam = currentMatch.teams[teamIndex];
-    console.log(championshipTeams)
     if(!currentRound){
       alert('invalid round');
       return;
@@ -272,10 +337,37 @@ function CreateBracket(){
   function FinalScore(){
     setShowScoreBoard(false);
     return(
-      <div>
+      <div className='ScoreBoard'>
         <h2>Final Score</h2>
         <p>{championshipTeams[0].name}     vs     {championshipTeams[1].name}</p>
         <p>{championshipScore[0]} - {championshipScore[1]}</p>
+      </div>
+    );
+  }
+
+  const [showPastPredictions, setShowPastPredictions] = useState(false);
+  function PastPrediction(){
+    const [predictions, setPredictions] = useState<any[]>([]);
+
+    useEffect(() => {
+      async function fetchPredictions() {
+        const predictions = await getPredictions();
+        setPredictions(predictions);
+      }
+      fetchPredictions();
+    }, [predictions]);
+
+    return (
+      <div>
+        <h2>Past Predictions</h2>
+        <ul>
+          {predictions.map((prediction) => (
+            <div key={prediction.$id}>
+              {prediction.championship_team} vs {prediction.runner_up_team} - {prediction.champion_score}:{prediction.runner_up_score}
+              <button onClick={() => deletePrediction(prediction.$id)}>Delete</button>
+            </div>
+          ))}
+        </ul>
       </div>
     );
   }
@@ -299,11 +391,14 @@ function CreateBracket(){
         ))}
         </div>
       ))}
-      <div className='ScoreBoard'>
+      <div>
         {showScoreBoard && <ScoreBoard />}
         {showChampionshipScore && <FinalScore />}
       </div>
-
+    </div>
+    <div>
+      <button onClick = {() => setShowPastPredictions(true)}>View Predictions</button>
+      {showPastPredictions && <PastPrediction />}
     </div>
     </>
     );
