@@ -14,12 +14,28 @@ client.setProject('671af1940018ab6ff0e3');
 const database = new Databases(client);
 
 async function addTeam(name: string, rank: number) {
-  const response = await database.createDocument('671af7a100181ff6d285', '671afdce0026a9f0cbbe', 'unique()', { name , rank });
+  const response = await database.createDocument('671af7a100181ff6d285', '671afdce0026a9f0cbbe', 'unique()', { name , rank});
   console.log(response);
 }
 
-async function addPrediction(championship_team: string, runner_up_team: string, champion_score: number, runner_up_score: number) {
-  const response = await database.createDocument('671af7a100181ff6d285', '671b00e500041a664475', 'unique()', { championship_team, runner_up_team, champion_score, runner_up_score });
+async function getTimeIds(teamNames: string[]): Promise<any[]> {
+  const ids:Team[] = [];
+  for (const name of teamNames) {
+    try{
+      const response = await database.listDocuments('671af7a100181ff6d285', '671afdce0026a9f0cbbe', [Query.equal('name', name)]);
+      if(response.total > 0){
+        const teamId = response.documents[0].$id;
+        ids.push({name, id:teamId});
+      }
+    }catch(error){
+      console.error(error);
+    }
+}
+  return ids;
+}
+
+async function addPrediction(championship_team: string, runner_up_team: string, champion_score: number, runner_up_score: number, selected_teams: string[]) {
+  const response = await database.createDocument('671af7a100181ff6d285', '671b00e500041a664475', 'unique()', { championship_team, runner_up_team, champion_score, runner_up_score, selected_teams });
   console.log(response);
 }
 
@@ -42,6 +58,7 @@ async function getTeams(): Promise<Team[]> {
     return response.documents.map((doc) => ({
       name: doc.name,
       rank: doc.rank,
+      id: doc.$id
     }));
   } catch(error){
     console.error(error);
@@ -58,6 +75,7 @@ async function getTeams(): Promise<Team[]> {
 interface Team {
   name: string;
   rank?: number;
+  id?: string;
 }
 
 
@@ -92,32 +110,31 @@ function Title(){
 }
 
 const initialTeams:Team[] = [
-  {name: 'Texas'},
   {name: 'Oregon'},
+  {name: 'Georgia'},
   {name: 'Penn State'},
   {name: 'Ohio State'},
-  {name: 'Georgia'},
   {name: 'Miami FL'},
-  {name: 'Alabama'},
-  {name: 'LSU'},
-  {name: 'Iowa State'},
-  {name: 'Clemson'},
+  {name: 'Texas'},
   {name: 'Tennessee'},
   {name: 'Notre Dame'},
   {name: 'BYU'},
   {name: 'Texas A&M'},
-  {name: 'Boise State'},
+  {name: 'Iowa State'},
+  {name: 'Clemson'},
   {name: 'Indiana'},
+  {name: 'Alabama'},
+  {name: 'Boise State'},
+  {name: 'LSU'},
   {name: 'Kansas State'},
-  {name: 'Ole Miss'},
-  {name: 'Missouri'},
   {name: 'Pitt'},
+  {name: 'Ole Miss'},
   {name: 'SMU'},
-  {name: 'Illinois'},
   {name: 'Army'},
-  {name: 'Michigan'},
-  {name: 'Navy'},
-  {name: 'Utah'}
+  {name: 'Washington State'},
+  {name: 'Colorado'},
+  {name: 'Illinois'},
+  {name: 'Missouri'}
 ];
 
 function TeamSelection({name}:Team){
@@ -238,7 +255,7 @@ function CreateBracket(){
       }
       setChampionshipScore([parseInt(score1), parseInt(score2)]);
       setShowChampionshipScore(true);
-      addPrediction(championshipTeams[0].name, championshipTeams[1].name, parseInt(score1), parseInt(score2));
+      addPrediction(championshipTeams[0].name, championshipTeams[1].name, parseInt(score1), parseInt(score2), topTeams.map(team => team.name));
     }
     return(
       <div className='ScoreBoard'>
@@ -253,7 +270,7 @@ function CreateBracket(){
     );
   }
 
-  // const [allTeams, setAllTeams] = useState<Team[]>([]);
+  const [allTeams, setAllTeams] = useState<Team[]>([]);
   useEffect(() => {
     if(topTeams.length === 12){
       alert('Bracket is Full!');
@@ -272,12 +289,13 @@ function CreateBracket(){
   //     if(allTeams){
   //       const allTeamsWithRank = allTeams.map((doc)=> ({
   //         name: doc.name,
-  //         rank: doc.rank
+  //         rank: doc.rank,
+  //         id: doc.id
   //       }));
   //       setAllTeams(allTeamsWithRank);
   //     }
   //   }
-  //   if(showBracket){
+  //   if(showPastPredictions){
   //     fetchTeams();
   //   }
   //   });
@@ -355,20 +373,25 @@ function CreateBracket(){
         setPredictions(predictions);
       }
       fetchPredictions();
-    }, [predictions]);
+    });
 
     return (
+      <>
       <div>
         <h2>Past Predictions</h2>
         <ul>
           {predictions.map((prediction) => (
             <div key={prediction.$id}>
               {prediction.championship_team} vs {prediction.runner_up_team} - {prediction.champion_score}:{prediction.runner_up_score}
+              {prediction.selected_teams.map((team_name:string) => (
+                <div>{team_name}</div>
+              ))}
               <button onClick={() => deletePrediction(prediction.$id)}>Delete</button>
             </div>
           ))}
         </ul>
       </div>
+      </>
     );
   }
 
@@ -398,7 +421,7 @@ function CreateBracket(){
     </div>
     <div>
       <button onClick = {() => setShowPastPredictions(true)}>View Predictions</button>
-      {showPastPredictions && <PastPrediction />}
+      {showPastPredictions && <PastPrediction />} 
     </div>
     </>
     );
