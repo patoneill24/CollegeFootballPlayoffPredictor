@@ -5,7 +5,7 @@ import {HTML5Backend} from 'react-dnd-html5-backend';
 import {useDrag} from 'react-dnd';
 import {useDrop} from 'react-dnd';
 import React, {useEffect } from 'react';
-import { Client, Databases, Query } from 'appwrite';
+import { Client, Databases } from 'appwrite';
 
 
 const client = new Client();
@@ -18,21 +18,21 @@ async function addTeam(name: string, rank: number) {
   console.log(response);
 }
 
-async function getTimeIds(teamNames: string[]): Promise<any[]> {
-  const ids:Team[] = [];
-  for (const name of teamNames) {
-    try{
-      const response = await database.listDocuments('671af7a100181ff6d285', '671afdce0026a9f0cbbe', [Query.equal('name', name)]);
-      if(response.total > 0){
-        const teamId = response.documents[0].$id;
-        ids.push({name, id:teamId});
-      }
-    }catch(error){
-      console.error(error);
-    }
-}
-  return ids;
-}
+// async function getTimeIds(teamNames: string[]): Promise<any[]> {
+//   const ids:Team[] = [];
+//   for (const name of teamNames) {
+//     try{
+//       const response = await database.listDocuments('671af7a100181ff6d285', '671afdce0026a9f0cbbe', [Query.equal('name', name)]);
+//       if(response.total > 0){
+//         const teamId = response.documents[0].$id;
+//         ids.push({name, id:teamId});
+//       }
+//     }catch(error){
+//       console.error(error);
+//     }
+// }
+//   return ids;
+// }
 
 async function addPrediction(championship_team: string, runner_up_team: string, champion_score: number, runner_up_score: number, selected_teams: string[]) {
   const response = await database.createDocument('671af7a100181ff6d285', '671b00e500041a664475', 'unique()', { championship_team, runner_up_team, champion_score, runner_up_score, selected_teams });
@@ -50,22 +50,22 @@ async function deletePrediction(id: string) {
   console.log(response);
 }
 
-async function getTeams(): Promise<Team[]> {
-  try{
-    const response = await database.listDocuments('671af7a100181ff6d285', '671afdce0026a9f0cbbe',
-      [Query.orderDesc('$createdAt'), Query.limit(12)]);
-    console.log(response);
-    return response.documents.map((doc) => ({
-      name: doc.name,
-      rank: doc.rank,
-      id: doc.$id
-    }));
-  } catch(error){
-    console.error(error);
-    return [];
-  }
+// async function getTeams(): Promise<Team[]> {
+//   try{
+//     const response = await database.listDocuments('671af7a100181ff6d285', '671afdce0026a9f0cbbe',
+//       [Query.orderDesc('$createdAt'), Query.limit(12)]);
+//     console.log(response);
+//     return response.documents.map((doc) => ({
+//       name: doc.name,
+//       rank: doc.rank,
+//       id: doc.$id
+//     }));
+//   } catch(error){
+//     console.error(error);
+//     return [];
+//   }
 
-}
+// }
 
 // interface Document {
 //   name: string;
@@ -105,7 +105,6 @@ interface Item {
 function Title(){
   return <div>
     <h1>2025 CFB Playoff Prediction</h1>
-    <h2>Team Selection</h2>
   </div>
 }
 
@@ -270,7 +269,7 @@ function CreateBracket(){
     );
   }
 
-  const [allTeams, setAllTeams] = useState<Team[]>([]);
+  // const [allTeams, setAllTeams] = useState<Team[]>([]);
   useEffect(() => {
     if(topTeams.length === 12){
       alert('Bracket is Full!');
@@ -377,19 +376,41 @@ function CreateBracket(){
 
     return (
       <>
-      <div>
-        <h2>Past Predictions</h2>
+      <button onClick={() => setShowPastPredictions(false)}>Hide Predictions</button>
+      <h1>Past Predictions</h1>
+      <div className='Predictions'>
         <ul>
           {predictions.map((prediction) => (
-            <div key={prediction.$id}>
-              {prediction.championship_team} vs {prediction.runner_up_team} - {prediction.champion_score}:{prediction.runner_up_score}
-              {prediction.selected_teams.map((team_name:string) => (
-                <div>{team_name}</div>
-              ))}
+            <div className='Prediction' key={prediction.$id}> 
+              <h2>{prediction.championship_team} vs {prediction.runner_up_team} - {prediction.champion_score}:{prediction.runner_up_score}</h2>
               <button onClick={() => deletePrediction(prediction.$id)}>Delete</button>
-            </div>
+              <button onClick={() => alert('Selected Teams: ' + prediction.selected_teams)}>View Teams</button>
+              </div>
           ))}
         </ul>
+      </div>
+      </>
+    );
+  }
+
+  const [showCreatePrediction, setShowCreatePrediction] = useState(false);
+
+  function CreatePrediction(){
+    return(
+      <>
+      <h2>Team Selection</h2>
+      <div className='Teams'>
+        <div className='TeamsBox'>
+          <h2>Top 25 Teams</h2>
+          {teams.map((team) => (
+            <TeamSelection key= {team.name} name={team.name}/>
+          ))}
+        </div>
+        <DropZone onDrop={moveTeam}/>
+      </div>
+        <div className='BracketButton'>
+        <button onClick={()=> handleClick()}>Create Bracket!</button>
+        {showBracket && <Bracket rounds = {rounds}/>}
       </div>
       </>
     );
@@ -419,10 +440,6 @@ function CreateBracket(){
         {showChampionshipScore && <FinalScore />}
       </div>
     </div>
-    <div>
-      <button onClick = {() => setShowPastPredictions(true)}>View Predictions</button>
-      {showPastPredictions && <PastPrediction />} 
-    </div>
     </>
     );
   };
@@ -438,19 +455,12 @@ function CreateBracket(){
 
   return(
     <>
-      <div className='Teams'>
-        <div className='TeamsBox'>
-          <h2>Top 25 Teams</h2>
-          {teams.map((team) => (
-            <TeamSelection key= {team.name} name={team.name}/>
-          ))}
-        </div>
-        <DropZone onDrop={moveTeam}/>
-      </div>
-      <div className='BracketButton'>
-        <button onClick={()=> handleClick()}>Create Bracket!</button>
-        {showBracket && <Bracket rounds = {rounds}/>}
-      </div>
+    <div className = 'BracketButton'>
+      <button onClick={()=>setShowCreatePrediction(true)}>Create Prediction</button>
+      <button onClick = {() => setShowPastPredictions(true)}>View Predictions</button>
+    </div>
+    {showCreatePrediction && <CreatePrediction />}
+    {showPastPredictions && <PastPrediction />} 
     </>
   );
 }
