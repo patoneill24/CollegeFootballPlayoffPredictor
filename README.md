@@ -2,9 +2,9 @@
 
 **Project Title**: CFB Playoff Predictor
 
-**Project Description**: Users can predict which teams will make the College Football Playoffs and pick which teams will win each game in the playoff bracket. They can also predict the score of the championship game. 
+**Project Description**: Users can predict which teams will make the College Football Playoffs and pick which teams will win each game in the playoff bracket. They can also predict the score of the championship game. Users can additionally add multiple predictions along with view their past predictions and modify or delete them as they see fit.
 
-**Project Goals**: The goal is to provide a fun and ineractive way for people to predict the College Football Playoff teams and games.
+**Project Goals**: The goal is to provide a fun and ineractive way for people to predict the College Football Playoff teams and games, as well as to view and modify their past predictions.
 
 ## Instructions for Build and Use
 
@@ -14,17 +14,25 @@ Steps to build and/or run the software:
 
 Instructions for using the software:
 
-1. Drag and drop the teams who you think will make the playoffs.
+1. Click create bracket to start the prediction process.
+2. Drag and drop the teams who you think will make the playoffs.
 2. Once you dragged and dropped 12 teams, click the 'Create Bracket' button to see the playoff bracket.
 3. Click on the teams you think will win each game in the bracket.
 4. Once you have picked the winners of each game, select your prediction for the score of the championship game.
+5. Click the 'Submit' button to submit your predictions.
+6. Click view Predictions to see your past predictions.
+7. Press delete on the prediction you want to delete.
+8. Press modify to modify the prediction you want to modify.
+9. click back to go back to the main menu.
+10. Add, delete, or modify predictions as you see fit.
 
 ## Development Environment 
 
 To recreate the development environment, you need the following software and/or libraries with the specified versions:
 
 * run `npx create-react-app my-ap cd my-app` to create a new React app.
-* run `npm start` to start the app. run `npm install react-dnd` and `npm install react-dnd-html5-backend` to install libraries * necessary for drag and drop. 
+* run `npm start` to start the app. 
+* run `npm install react-dnd` and `npm install react-dnd-html5-backend` to install libraries * necessary for drag and drop. 
 * run `npm install --save typescript @types/node @types/react @types/react-dom @types/jest` to install typescript and types for React and to add it to your existing project. 
 * change the file extension of the App.js file to App.tsx to convert the file to a typescript file.
 
@@ -37,6 +45,7 @@ I found these websites useful in developing this software:
 * [React-dnd-tutorial](https://www.youtube.com/watch?v=4bzJrEETW4w)
 * [TypeScript Documentation](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html)
 * [Adding Typescript to React](https://create-react-app.dev/docs/adding-typescript/)
+* [AppWrite Documentation](https://appwrite.io/docs/references/cloud/client-web/databases)
 ## Future Work
 
 The following items I plan to fix, improve, and/or add to this project in the future:

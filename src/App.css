@@ -24,17 +24,6 @@
   color: white;
 }
 
-.ScoreBoard{
-  margin-top: 300px;
-  text-align: center;
-  background-color: lightgray;
-  height: 220px;
-  padding: 10px;
-  input{
-    width: 100px;
-    margin: 5px;
-  }
-}
 
 .avatar{
   border-radius: 50%;
@@ -217,6 +206,33 @@
     font-size: large;
   }
 }
+
+.scoreBoardUpdate{
+  display: flex;
+  justify-content: center;
+}
+
+.ScoreBoard{
+  background-color: lightgray;
+  height: auto;
+  width: 100%;
+  input{
+    width: 100px;
+    margin: 5px;
+  }
+}
+
+.BackButton{
+  display: flex;
+  justify-content: center;
+  background-color: black;
+  color: white;
+  width: 30%;
+  height: 30px;
+  border-radius: 15px;
+  margin: 10px;
+}
+
 
 @keyframes App-logo-spin {
   from {

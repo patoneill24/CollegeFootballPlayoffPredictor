@@ -50,6 +50,11 @@ async function deletePrediction(id: string) {
   console.log(response);
 }
 
+async function modifyPrediction(id: string, championship_team: string, runner_up_team: string, champion_score: number, runner_up_score: number, selected_teams: string[]) {
+  const response = await database.updateDocument('671af7a100181ff6d285', '671b00e500041a664475', id, { championship_team, runner_up_team, champion_score, runner_up_score, selected_teams });
+  console.log(response);
+}
+
 // async function getTeams(): Promise<Team[]> {
 //   try{
 //     const response = await database.listDocuments('671af7a100181ff6d285', '671afdce0026a9f0cbbe',
@@ -77,6 +82,7 @@ interface Team {
   rank?: number;
   id?: string;
 }
+
 
 
 interface Match {
@@ -161,6 +167,8 @@ function CreateBracket(){
   const [championshipScore, setChampionshipScore] = useState<[number, number]>([0,0]);
   const [showChampionshipScore, setShowChampionshipScore] = useState(false);
   const [showScoreBoard, setShowScoreBoard] = useState(false);
+  const [score1, setScore1] = useState('');
+  const [score2, setScore2] = useState('');
 
   function DropZone({onDrop}: DropZoneProps) {
     const [, drop] = useDrop<Item>(() => ({
@@ -240,31 +248,39 @@ function CreateBracket(){
   },[]);
 
   function ScoreBoard() { 
-    const [score1, setScore1] = useState('');
-    const [score2, setScore2] = useState('');
 
     const ChooseScore = () => {
       if(score1 === '' || score2 === ''){
         alert('Please enter a score');
         return;
       }
-      if(score1 < score2){
+      if(parseInt(score1) < parseFloat(score2)){
         alert(`You selected ${championshipTeams[0].name} as the winner, but the score does not reflect that`);
         return;
       }
       setChampionshipScore([parseInt(score1), parseInt(score2)]);
       setShowChampionshipScore(true);
       addPrediction(championshipTeams[0].name, championshipTeams[1].name, parseInt(score1), parseInt(score2), topTeams.map(team => team.name));
+      setShowBracket(false);
+      setTeams([]);
+      setChampionshipScore([0,0]);
+      setScore1('');
+      setScore2('');
+      setShowChampionshipScore(false);
+      setShowScoreBoard(false);
+      alert('Prediction Submitted');
     }
     return(
-      <div className='ScoreBoard'>
-        <h2>Predict Final Score</h2>
-        <p>{championshipTeams[0].name}     vs     {championshipTeams[1].name}</p>
-        <input type='text' placeholder='Enter Score' value={score1}
-        onChange={(e) => setScore1(e.target.value)}/>
-        <input type='text' placeholder='Enter Score' value={score2}
-        onChange={(e)=> setScore2(e.target.value)}/>
-        <button className='SubmitButton' onClick={() => ChooseScore()}>Submit</button>
+      <div className='scoreBoardUpdate'>
+        <div className='ScoreBoard'>
+          <h2>Predict Final Score</h2>
+          <p>{championshipTeams[0].name}     vs     {championshipTeams[1].name}</p>
+          <input type='text' placeholder='Enter Score' value={score1}
+          onChange={(e) => setScore1(e.target.value)}/>
+          <input type='text' placeholder='Enter Score' value={score2}
+          onChange={(e)=> setScore2(e.target.value)}/>
+          <button className='SubmitButton' onClick={() => ChooseScore()}>Submit Prediction</button>
+        </div>
       </div>
     );
   }
@@ -354,29 +370,85 @@ function CreateBracket(){
   function FinalScore(){
     setShowScoreBoard(false);
     return(
-      <div className='ScoreBoard'>
-        <h2>Final Score</h2>
-        <p>{championshipTeams[0].name}     vs     {championshipTeams[1].name}</p>
-        <p>{championshipScore[0]} - {championshipScore[1]}</p>
+      <div className = 'scoreBoardUpdate'>
+        <div className='ScoreBoard'>
+          <h2>Final Score</h2>
+          <p>{championshipTeams[0].name}     vs     {championshipTeams[1].name}</p>
+          <p>{championshipScore[0]} - {championshipScore[1]}</p>
+        </div>
+    </div>
+    );
+  }
+
+
+  function NewScoreBoard() {
+      
+    const ChooseScore = () => {
+      if(score1 === '' || score2 === ''){
+        alert('Please enter a score');
+        return;
+      }
+      if(parseInt(score1) < parseInt(score2)){
+        alert(`You selected ${championshipTeams[0].name} as the winner, but the score does not reflect that`);
+        return;
+      }
+      setChampionshipScore([parseInt(score1), parseInt(score2)]);
+      modifyPrediction(id, championshipTeams[0].name, championshipTeams[1].name, parseInt(score1), parseInt(score2), topTeams.map(team => team.name));
+      setShowBracket(false);
+      setShowScoreBoard(false);
+      setTeams([]);
+      setChampionshipScore([0,0]);
+      setScore1('');
+      setScore2('');
+      alert('Prediction Updated');
+    }
+    return(
+      <div className='scoreBoardUpdate'>
+        <div className='ScoreBoard'>
+          <h2>Predict Final Score</h2>
+          <p>{championshipTeams[0].name}     vs     {championshipTeams[1].name}</p>
+          <input type='text' placeholder='Enter Score' value={score1}
+          onChange={(e) => setScore1(e.target.value)}/>
+          <input type='text' placeholder='Enter Score' value={score2}
+          onChange={(e)=> setScore2(e.target.value)}/>
+          <button className='SubmitButton' onClick={() => ChooseScore()}>Alter Prediction</button>
+        </div>
       </div>
     );
   }
 
+  const [id, setId] = useState<string>('');
+
   const [showPastPredictions, setShowPastPredictions] = useState(false);
   function PastPrediction(){
     const [predictions, setPredictions] = useState<any[]>([]);
-
+    
     useEffect(() => {
       async function fetchPredictions() {
         const predictions = await getPredictions();
         setPredictions(predictions);
       }
-      fetchPredictions();
+      if(!showBracket){
+          fetchPredictions();
+      }
     });
+
+    const changePrediction = (id:string) => {
+      const prediction = predictions.filter((prediction) => prediction.$id === id);
+      if(prediction){
+        const newTeams = prediction[0].selected_teams.map((team: string) => ({name: team}));
+        setTeams(newTeams);
+        setRounds([]);
+        setChampionshipTeams([]);
+        setChampionshipScore([0,0]);
+        setShowBracket(true);
+        setId(id);
+      }
+    }
+
 
     return (
       <>
-      <button onClick={() => setShowPastPredictions(false)}>Hide Predictions</button>
       <h1>Past Predictions</h1>
       <div className='Predictions'>
         <ul>
@@ -385,10 +457,16 @@ function CreateBracket(){
               <h2>{prediction.championship_team} vs {prediction.runner_up_team} - {prediction.champion_score}:{prediction.runner_up_score}</h2>
               <button onClick={() => deletePrediction(prediction.$id)}>Delete</button>
               <button onClick={() => alert('Selected Teams: ' + prediction.selected_teams)}>View Teams</button>
+              <button onClick={()=>changePrediction(prediction.$id)}>Modify</button>
               </div>
           ))}
         </ul>
       </div>
+      {showBracket && <Bracket rounds = {rounds}/>}
+      <div className='scoreBoardUpdate'>
+        {showScoreBoard && <NewScoreBoard/>}
+      </div>
+      <button onClick={()=> setShowPastPredictions(false)}>Back</button>
       </>
     );
   }
@@ -411,7 +489,10 @@ function CreateBracket(){
         <div className='BracketButton'>
         <button onClick={()=> handleClick()}>Create Bracket!</button>
         {showBracket && <Bracket rounds = {rounds}/>}
+        {showScoreBoard && <ScoreBoard />}
+        {showChampionshipScore && <FinalScore />}
       </div>
+      <button onClick={()=> setShowCreatePrediction(false)}>Back</button>
       </>
     );
   }
@@ -435,10 +516,6 @@ function CreateBracket(){
         ))}
         </div>
       ))}
-      <div>
-        {showScoreBoard && <ScoreBoard />}
-        {showChampionshipScore && <FinalScore />}
-      </div>
     </div>
     </>
     );
