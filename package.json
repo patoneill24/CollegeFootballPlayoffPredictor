@@ -1,6 +1,6 @@
 {
   "name": "my-ap",
-  "homepage": "https://patoneill24.github.io/CollegeFootballPlayoffPredictor/App.tsx",
+  "homepage": "https://patoneill24.github.io/CollegeFootballPlayoffPredictor/index.html",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
